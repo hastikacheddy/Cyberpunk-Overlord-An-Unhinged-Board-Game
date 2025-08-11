@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly 3000: Dominate or Delete™</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --board-bg: #0c0c1f;
+            --tile-bg: #1a1a3a;
+            --tile-border: #ff00ff;
+            --text-light: #ff00ff; /* Magenta */
+            --text-accent: #00ffff; /* Cyan */
+            --text-dark: #e0e0e0;
+            
+            /* Neon Property Colors */
+            --color-brown: #a95f99;
+            --color-light-blue: #00e5ff;
+            --color-pink: #ff00ff;
+            --color-orange: #ff8c00;
+            --color-red: #ff1e56;
+            --color-yellow: #fff000;
+            --color-green: #39ff14;
+            --color-dark-blue: #4f00f5;
+        }
+
+        body {
+            background-color: var(--board-bg);
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--text-dark);
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: 120px repeat(9, 80px) 120px;
+            grid-template-rows: 120px repeat(9, 80px) 120px;
+            gap: 2px;
+            padding: 10px;
+            background-color: #000;
+            border: 4px solid var(--text-light);
+            box-shadow: 0 0 15px var(--text-light), 0 0 25px var(--text-light) inset;
+            width: 990px;
+            height: 990px;
+            margin: 20px auto;
+        }
+
+        .tile {
+            background-color: var(--tile-bg);
+            border: 2px solid var(--tile-border);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+            font-size: 10px;
+            text-align: center;
+            color: var(--text-dark);
+            text-shadow: 0 0 3px var(--text-accent);
+        }
+        
+        .corner {
+            font-size: 20px;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--text-accent);
+            text-shadow: 0 0 8px var(--text-accent);
+        }
+
+        .property-name {
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #fff;
+        }
+        
+        .price {
+            font-size: 12px;
+            color: var(--text-accent);
+        }
+        
+        .color-bar {
+            width: 100%;
+            height: 20px;
+            border-bottom: 2px solid var(--tile-border);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5) inset;
+        }
+
+        .center-area {
+            grid-column: 2 / 11;
+            grid-row: 2 / 11;
+            background: radial-gradient(circle, #1a1a3a 0%, #0c0c1f 100%);
+            border: 2px solid var(--text-accent);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            color: var(--text-light);
+            text-shadow: 0 0 15px var(--text-light);
+            margin: 0;
+        }
+        
+        .game-subtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--text-accent);
+            text-shadow: 0 0 8px var(--text-accent);
+            margin-top: -10px;
+            border-top: 2px solid var(--text-accent);
+            border-bottom: 2px solid var(--text-accent);
+            padding: 5px 0;
+        }
+
+        .player-piece {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            transition: all 0.5s ease-in-out;
+            z-index: 10;
+            box-shadow: 0 0 8px #fff;
+        }
+        
+        #player1-piece { background-color: #ff1e56; box-shadow: 0 0 8px #ff1e56; }
+        #player2-piece { background-color: #39ff14; box-shadow: 0 0 8px #39ff14; }
+        #player3-piece { background-color: #4f00f5; box-shadow: 0 0 8px #4f00f5; }
+        #player4-piece { background-color: #fff000; box-shadow: 0 0 8px #fff000; }
+        #ai-overlord-piece { background-color: #ffffff; border: 2px solid red; box-shadow: 0 0 12px red;}
+
+
+        .player-info {
+            background-color: var(--tile-bg);
+            border: 2px solid var(--text-accent);
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--text-accent);
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cyber {
+            background: linear-gradient(45deg, var(--text-light), var(--text-accent));
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--text-light), 0 0 20px var(--text-light);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cyber:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-cyber:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--text-light), 0 0 40px var(--text-light);
+        }
+        
+        .modal {
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--board-bg);
+            padding: 20px;
+            border: 2px solid var(--text-accent);
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            border-radius: 15px;
+            box-shadow: 0 0 25px var(--text-light);
+        }
+        
+        .card-display {
+            width: 250px;
+            height: 150px;
+            border: 2px solid;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-family: 'Orbitron';
+            text-align: center;
+            padding: 10px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .glitch-card {
+            border-color: var(--color-yellow);
+            background-color: rgba(255, 240, 0, 0.1);
+            color: var(--color-yellow);
+            text-shadow: 0 0 8px var(--color-yellow);
+        }
+        
+        .power-play-card {
+            border-color: var(--text-accent);
+            background-color: rgba(0, 255, 255, 0.1);
+            color: var(--text-accent);
+            text-shadow: 0 0 8px var(--text-accent);
+        }
+
+        .tile-icon {
+            position: absolute;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            z-index: 5;
+            text-shadow: 0 0 5px #fff;
+        }
+
+        #moral-collapse-tracker {
+            color: var(--color-red);
+            font-family: 'Orbitron';
+            margin-top: 15px;
+            font-size: 1.2rem;
+            text-shadow: 0 0 8px var(--color-red);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 flex flex-col lg:flex-row justify-center items-start p-4">
+
+    <div id="game-container" class="relative">
+        <div class="game-board" id="game-board">
+            <!-- Corner Tiles -->
+            <div class="tile corner" id="tile-0" style="grid-column: 11; grid-row: 11;">GO</div>
+            <div class="tile corner" id="tile-10" style="grid-column: 1; grid-row: 11;">Jail</div>
+            <div class="tile corner" id="tile-20" style="grid-column: 1; grid-row: 1;">Free Parking</div>
+            <div class="tile corner" id="tile-30" style="grid-column: 11; grid-row: 1;">Go to Jail</div>
+
+            <!-- Center Area -->
+            <div class="center-area">
+                 <h1 class="game-title">MONOPOLY</h1>
+                 <h1 class="game-title -mt-4">3000</h1>
+                 <h2 class="game-subtitle">DOMINATE OR DELETE</h2>
+                 <div class="flex mt-4">
+                     <div id="glitch-deck" class="card-display glitch-card">GLITCH</div>
+                     <div id="power-play-deck" class="card-display power-play-card">POWER PLAY</div>
+                 </div>
+                 <div id="dice-display" class="mt-4 text-2xl font-orbitron"></div>
+                 <div id="moral-collapse-tracker">Moral Collapse: 0 / 5</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ui-panel" class="w-full lg:w-96 lg:ml-8 mt-8 lg:mt-0">
+        <div id="players-info" class="grid grid-cols-2 gap-4"></div>
+        <div class="controls mt-4 p-4 bg-gray-800 border-2 border-cyan-400 rounded-lg shadow-lg">
+            <h3 class="text-2xl font-orbitron text-center text-cyan-400">CONTROLS</h3>
+            <div id="current-player-display" class="text-center text-xl my-2"></div>
+            <button id="roll-dice-btn" class="btn-cyber">Roll Dice</button>
+            <button id="end-turn-btn" class="btn-cyber" disabled>End Turn</button>
+            <div id="special-actions" class="flex flex-col gap-2 mt-2"></div>
+        </div>
+        <div id="log" class="mt-4 p-4 h-48 bg-gray-800 border-2 border-cyan-400 rounded-lg shadow-lg overflow-y-auto text-sm">
+            <p>Welcome to Monopoly 3000!</p>
+        </div>
+    </div>
+    
+    <!-- Modal for property actions, cards, etc. -->
+    <div id="action-modal" class="modal">
+        <div id="modal-content" class="modal-content">
+            <!-- Content will be injected by JS -->
+        </div>
+    </div>
+
+
+    <script>
+        // --- GAME DATA ---
+        const boardData = [
+            { name: "GO", type: "go" },
+            { name: "Data Wasteland", type: "property", group: "Brown", price: 60, rent: [2, 10, 30, 90, 160, 250] },
+            { name: "Glitch", type: "glitch" },
+            { name: "Abandoned Bunker", type: "property", group: "Brown", price: 60, rent: [4, 20, 60, 180, 320, 450] },
+            { name: "Income Tax", type: "tax", amount: 200 },
+            { name: "Dark Web Express", type: "dataroute", price: 200 },
+            { name: "Black Market AI Shop", type: "property", group: "Light Blue", price: 100, rent: [6, 30, 90, 270, 400, 550] },
+            { name: "Glitch", type: "glitch" },
+            { name: "Holo-Street", type: "property", group: "Light Blue", price: 100, rent: [6, 30, 90, 270, 400, 550] },
+            { name: "Crypto Pawn House", type: "property", group: "Light Blue", price: 120, rent: [8, 40, 100, 300, 450, 600] },
+            { name: "Just Visiting / In Jail", type: "jail" },
+            { name: "Gene Splice Café", type: "property", group: "Pink", price: 140, rent: [10, 50, 150, 450, 625, 750] },
+            { name: "Energy Grid", type: "controlsystem", price: 150 },
+            { name: "CRISPR Lab", type: "property", group: "Pink", price: 140, rent: [10, 50, 150, 450, 625, 750] },
+            { name: "NeuroMod Parlor", type: "property", group: "Pink", price: 160, rent: [12, 60, 180, 500, 700, 900] },
+            { name: "Wormhole Jump", type: "dataroute", price: 200 },
+            { name: "Qubit Tower", type: "property", group: "Orange", price: 180, rent: [14, 70, 200, 550, 750, 950] },
+            { name: "Power Play", type: "powerplay" },
+            { name: "Wormhole Plaza", type: "property", group: "Orange", price: 180, rent: [14, 70, 200, 550, 750, 950] },
+            { name: "Entanglement Mall", type: "property", group: "Orange", price: 200, rent: [16, 80, 220, 600, 800, 1000] },
+            { name: "Cyber Stand", type: "freeparking" },
+            { name: "DreamSync Hub", type: "property", group: "Red", price: 220, rent: [18, 90, 250, 700, 875, 1050] },
+            { name: "Glitch", type: "glitch" },
+            { name: "Soul Transfer Clinic", type: "property", group: "Red", price: 220, rent: [18, 90, 250, 700, 875, 1050] },
+            { name: "Projection Plaza", type: "property", group: "Red", price: 240, rent: [20, 100, 300, 750, 925, 1100] },
+            { name: "Time-Lag Line", type: "dataroute", price: 200 },
+            { name: "AGI Citadel", type: "property", group: "Yellow", price: 260, rent: [22, 110, 330, 800, 975, 1150] },
+            { name: "Neural Net Factory", type: "property", group: "Yellow", price: 260, rent: [22, 110, 330, 800, 975, 1150] },
+            { name: "Neural Link Network", type: "controlsystem", price: 150 },
+            { name: "Singularity Node", type: "property", group: "Yellow", price: 280, rent: [24, 120, 360, 850, 1025, 1200] },
+            { name: "Go To Jail", type: "gotojail" },
+            { name: "Immortality Vault", type: "property", group: "Green", price: 300, rent: [26, 130, 390, 900, 1100, 1275] },
+            { name: "Cybernetic SkyRise", type: "property", group: "Green", price: 300, rent: [26, 130, 390, 900, 1100, 1275] },
+            { name: "Power Play", type: "powerplay" },
+            { name: "Titan Dome", type: "property", group: "Green", price: 320, rent: [28, 150, 450, 1000, 1200, 1400] },
+            { name: "Orbital Drop", type: "dataroute", price: 200 },
+            { name: "Glitch", type: "glitch" },
+            { name: "Overlord Nexus", type: "property", group: "Dark Blue", price: 350, rent: [35, 175, 500, 1100, 1300, 1500] },
+            { name: "Super Tax", type: "tax", amount: 100 },
+            { name: "Reality Rewrite HQ", type: "property", group: "Dark Blue", price: 400, rent: [50, 200, 600, 1400, 1700, 2000] }
+        ].map((tile, index) => ({...tile, id: index, owner: null, rentBombTurns: 0, isTrapped: false}));
+
+        const glitchCards = [
+            { text: "AI revolt! Lose 100 Crypto Credits fixing their loyalty programming.", action: 'pay', amount: 100 },
+            { text: "Your consciousness upload corrupted. Miss 2 turns.", action: 'miss_turns', turns: 1 },
+            { text: "Advance to GO. Collect 200 CC.", action: 'go_to', position: 0 },
+            { text: "System glitch in your favor. Bank pays you 50 CC.", action: 'receive', amount: 50 },
+            { text: "Get out of Jail Free. This card may be kept until needed or sold.", action: 'get_out_of_jail' },
+        ];
+
+        const powerPlayCards = [
+            { text: "Data Leak: Reveal another player’s bank balance and force them to give you half their cash in hush money.", action: 'data_leak' },
+            { text: "Sell military-grade drone to highest bidder — gain 200 Crypto Credits.", action: 'receive', amount: 200 },
+            { text: "Hostile Takeover! Force an opponent to sell you a property for its face value.", action: 'force_buy' },
+            { text: "You have been elected Chairman of the Board. Pay each player 50 CC.", action: 'pay_all', amount: 50 },
+            { text: "Your crypto investment pays off. Collect 100 CC.", action: 'receive', amount: 100 },
+        ];
+
+
+        // --- GAME STATE ---
+        let players = [];
+        let currentPlayerIndex = 0;
+        let gameLog = [];
+        // New Mechanics State
+        let moralCollapseTracker = 0;
+        const MORAL_COLLAPSE_MAX = 5;
+        let isBlackoutActive = false;
+        let aiOverlord = null;
+
+        // --- DOM ELEMENTS ---
+        const boardElement = document.getElementById('game-board');
+        const playersInfoElement = document.getElementById('players-info');
+        const rollDiceBtn = document.getElementById('roll-dice-btn');
+        const endTurnBtn = document.getElementById('end-turn-btn');
+        const specialActionsContainer = document.getElementById('special-actions');
+        const logElement = document.getElementById('log');
+        const modal = document.getElementById('action-modal');
+        const modalContent = document.getElementById('modal-content');
+        const currentPlayerDisplay = document.getElementById('current-player-display');
+        const diceDisplay = document.getElementById('dice-display');
+        const moralCollapseTrackerDisplay = document.getElementById('moral-collapse-tracker');
+
+        // --- GAME LOGIC ---
+        function initGame() {
+            createPlayers(2);
+            createBoard();
+            updatePlayersUI();
+            updateCurrentPlayerDisplay();
+            updateSpecialActions();
+            logMessage(`Game started with ${players.length} players.`);
+        }
+
+        function createPlayers(numPlayers) {
+            const colors = ['#ff1e56', '#39ff14', '#4f00f5', '#fff000'];
+            for (let i = 1; i <= numPlayers; i++) {
+                players.push({
+                    id: i,
+                    name: `Player ${i}` + (i === 2 ? ' (AI)' : ''),
+                    money: 1500,
+                    position: 0,
+                    inJail: false,
+                    jailTurns: 0,
+                    getOutOfJailCards: 0,
+                    color: colors[i-1],
+                    missTurns: 0,
+                    isAI: i === 2, // Player 2 is the AI
+                    hasUsedSabotage: false,
+                    clonePosition: null, 
+                });
+                
+                const piece = document.createElement('div');
+                piece.id = `player${i}-piece`;
+                piece.className = 'player-piece';
+                piece.style.backgroundColor = players[i-1].color;
+                piece.style.boxShadow = `0 0 8px ${players[i-1].color}`;
+                document.getElementById('tile-0').appendChild(piece);
+            }
+        }
+
+        function createBoard() {
+             const tilePositions = [
+                { r: 11, c: 10 }, { r: 11, c: 9 }, { r: 11, c: 8 }, { r: 11, c: 7 }, { r: 11, c: 6 }, { r: 11, c: 5 }, { r: 11, c: 4 }, { r: 11, c: 3 }, { r: 11, c: 2 },
+                { r: 10, c: 1 }, { r: 9, c: 1 }, { r: 8, c: 1 }, { r: 7, c: 1 }, { r: 6, c: 1 }, { r: 5, c: 1 }, { r: 4, c: 1 }, { r: 3, c: 1 }, { r: 2, c: 1 },
+                { r: 1, c: 2 }, { r: 1, c: 3 }, { r: 1, c: 4 }, { r: 1, c: 5 }, { r: 1, c: 6 }, { r: 1, c: 7 }, { r: 1, c: 8 }, { r: 1, c: 9 }, { r: 1, c: 10 },
+                { r: 2, c: 11 }, { r: 3, c: 11 }, { r: 4, c: 11 }, { r: 5, c: 11 }, { r: 6, c: 11 }, { r: 7, c: 11 }, { r: 8, c: 11 }, { r: 9, c: 11 }, { r: 10, c: 11 }
+            ];
+
+            for (let i = 1; i < boardData.length; i++) {
+                if ([10, 20, 30].includes(i)) continue; 
+                
+                const tileData = boardData[i];
+                const tile = document.createElement('div');
+                tile.id = `tile-${i}`;
+                tile.className = 'tile';
+                
+                let pos;
+                if (i < 10) pos = tilePositions[i - 1];
+                else if (i < 20) pos = tilePositions[i - 2];
+                else if (i < 30) pos = tilePositions[i - 3];
+                else pos = tilePositions[i - 4];
+
+                tile.style.gridRow = pos.r;
+                tile.style.gridColumn = pos.c;
+
+                let content = `<div class="property-name">${tileData.name}</div>`;
+                if (tileData.group) {
+                    const colorBar = `<div class="color-bar" style="background-color: var(--color-${tileData.group.toLowerCase().replace(' ', '-')}"></div>`;
+                    tile.innerHTML = colorBar + content + `<div class="price">${tileData.price} CC</div>`;
+                } else {
+                    tile.innerHTML = content;
+                }
+                
+                boardElement.appendChild(tile);
+            }
+        }
+
+        function updatePlayersUI() {
+            playersInfoElement.innerHTML = '';
+            players.forEach(p => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player-info';
+                playerDiv.style.borderColor = p.color;
+                playerDiv.style.boxShadow = `0 0 10px ${p.color}`;
+                playerDiv.innerHTML = `
+                    <h4 class="font-orbitron text-lg" style="color:${p.color}; text-shadow: 0 0 5px ${p.color};">${p.name}</h4>
+                    <p>Crypto Credits: ${p.money} CC</p>
+                    <p>Properties: ${boardData.filter(prop => prop.owner === p.id).length}</p>
+                    ${p.inJail ? '<p class="text-red-500 font-bold">IN JAIL</p>' : ''}
+                    ${p.missTurns > 0 ? `<p class="text-yellow-400">MISS ${p.missTurns} TURN(S)</p>` : ''}
+                `;
+                playersInfoElement.appendChild(playerDiv);
+            });
+        }
+        
+        function updateCurrentPlayerDisplay() {
+            const player = players[currentPlayerIndex];
+            currentPlayerDisplay.innerHTML = `
+                <span style="color:${player.color}; text-shadow: 0 0 8px ${player.color};" class="font-bold">${player.name}'s Turn</span>
+            `;
+        }
+
+        function logMessage(message) {
+            gameLog.unshift(message);
+            if (gameLog.length > 20) gameLog.pop();
+            logElement.innerHTML = gameLog.map(m => `<p>${m}</p>`).join('');
+        }
+
+        function rollDice() {
+            rollDiceBtn.disabled = true;
+            const die1 = Math.floor(Math.random() * 6) + 1;
+            const die2 = Math.floor(Math.random() * 6) + 1;
+            const total = die1 + die2;
+            
+            diceDisplay.innerHTML = `Rolled: <span class="text-yellow-400">${die1}</span> + <span class="text-yellow-400">${die2}</span> = <span class="text-white">${total}</span>`;
+            logMessage(`${players[currentPlayerIndex].name} rolled a ${total}.`);
+            
+            if (die1 === 1 && die2 === 1) {
+                triggerBlackout();
+            }
+
+            movePlayer(total);
+        }
+
+        function movePlayer(steps) {
+            const player = players[currentPlayerIndex];
+            const oldPosition = player.position;
+            player.position = (player.position + steps) % 40;
+            
+            if (player.position < oldPosition && !player.inJail) {
+                logMessage(`${player.name} passed GO and collected 200 CC.`);
+                player.money += 200;
+                updatePlayersUI();
+            }
+
+            const piece = document.getElementById(`player${player.id}-piece`);
+            const targetTile = document.getElementById(`tile-${player.position}`);
+            targetTile.appendChild(piece);
+            
+            logMessage(`${player.name} moved to ${boardData[player.position].name}.`);
+            
+            setTimeout(() => handleTileLanding(), 500);
+        }
+
+        function handleTileLanding() {
+            const player = players[currentPlayerIndex];
+            const tile = boardData[player.position];
+            let actionTaken = false;
+
+            if (tile.owner === player.id && tile.rentBombTurns > 0) {
+                const upkeep = tile.price;
+                logMessage(`🚨 ${player.name} landed on their own overclocked property! Paying ${upkeep} CC upkeep.`);
+                player.money -= upkeep;
+                updatePlayersUI();
+            }
+
+            if (tile.isTrapped && tile.owner !== player.id) {
+                logMessage(`💥 ${player.name} triggered a booby trap on ${tile.name}!`);
+                player.missTurns += 1;
+                tile.isTrapped = false;
+                updateTileDisplay(tile.id);
+            }
+
+            switch (tile.type) {
+                case 'dataroute':
+                case 'controlsystem':
+                case 'property':
+                    handlePropertyLanding(player, tile, player.position);
+                    actionTaken = true;
+                    break;
+                case 'glitch': 
+                    drawCard('glitch'); 
+                    actionTaken = true;
+                    break;
+                case 'powerplay': 
+                    drawCard('powerplay'); 
+                    actionTaken = true;
+                    break;
+                case 'tax': 
+                    payTax(player, tile.amount); 
+                    break;
+                case 'gotojail': 
+                    goToJail(player); 
+                    actionTaken = true;
+                    break;
+            }
+
+            if (!actionTaken) {
+                resolveTurn();
+            }
+        }
+        
+        function handlePropertyLanding(player, property, position) {
+            const owner = players.find(p => p.id === property.owner);
+            if (owner) {
+                if (owner.id !== player.id) {
+                    const rent = calculateRent(property, owner, position);
+                    if (rent > 0) {
+                        logMessage(`${player.name} pays ${rent} CC in rent to ${owner.name}.`);
+                        player.money -= rent;
+                        owner.money += rent;
+                        updatePlayersUI();
+                    }
+                }
+                resolveTurn();
+            } else {
+                if (player.isAI) {
+                    // AI buying logic
+                    if (player.money > property.price + 300) { // AI keeps a buffer
+                        buyProperty(player, property, position);
+                    } else {
+                        logMessage(`${player.name} (AI) chose not to buy ${property.name}.`);
+                    }
+                    resolveTurn();
+                } else {
+                    // Human buying logic
+                    showModal(`
+                        <h3 class="text-xl font-orbitron mb-4" style="color: var(--text-accent); text-shadow: 0 0 5px var(--text-accent);">${property.name}</h3>
+                        <p class="mb-4">This asset is unowned. Acquire for ${property.price} CC?</p>
+                        <button id="buy-btn" class="btn-cyber">Acquire</button>
+                        <button id="pass-btn" class="btn-cyber bg-gray-600">Pass</button>
+                    `);
+                    document.getElementById('buy-btn').onclick = () => {
+                        buyProperty(player, property, position);
+                        closeModal();
+                        resolveTurn();
+                    };
+                    document.getElementById('pass-btn').onclick = () => {
+                        closeModal();
+                        resolveTurn();
+                    };
+                }
+            }
+        }
+        
+        function buyProperty(player, property, position) {
+            if (player.money >= property.price) {
+                player.money -= property.price;
+                boardData[position].owner = player.id;
+                logMessage(`${player.name} acquired ${property.name}.`);
+                updatePlayersUI();
+                updateSpecialActions();
+            } else {
+                logMessage(`${player.name} has insufficient credits for ${property.name}.`);
+            }
+        }
+        
+        function calculateRent(property, owner) {
+            if (isBlackoutActive) {
+                logMessage("BLACKOUT! All rent is frozen.");
+                return 0;
+            }
+            let rent = 0;
+            if (property.type === 'dataroute') {
+                const routesOwned = boardData.filter(p => p.type === 'dataroute' && p.owner === owner.id).length;
+                rent = 25 * Math.pow(2, routesOwned - 1);
+            } else if (property.type === 'controlsystem') {
+                const systemsOwned = boardData.filter(p => p.type === 'controlsystem' && p.owner === owner.id).length;
+                rent = (systemsOwned === 1 ? 4 : 10) * 10;
+            } else {
+                rent = property.rent[0]; // Base rent for now
+            }
+
+            if (property.rentBombTurns > 0) {
+                logMessage(`💣 RENT BOMB! Rent is doubled on ${property.name}!`);
+                rent *= 2;
+            }
+
+            return rent;
+        }
+
+        function payTax(player, amount) {
+            logMessage(`${player.name} paid ${amount} CC in corporate tax.`);
+            player.money -= amount;
+            updatePlayersUI();
+        }
+        
+        function goToJail(player) {
+            logMessage(`${player.name} has been detained!`);
+            player.position = 10;
+            player.inJail = true;
+            player.jailTurns = 0;
+            
+            const piece = document.getElementById(`player${player.id}-piece`);
+            document.getElementById('tile-10').appendChild(piece);
+            updatePlayersUI();
+            resolveTurn();
+        }
+        
+        function drawCard(type) {
+            const player = players[currentPlayerIndex];
+            const deck = type === 'glitch' ? glitchCards : powerPlayCards;
+            const card = deck[Math.floor(Math.random() * deck.length)];
+            
+            logMessage(`${player.name} drew a ${type.toUpperCase()} card: "${card.text}"`);
+            
+            if (player.isAI) {
+                handleCardAction(card);
+                resolveTurn();
+            } else {
+                showModal(`
+                    <h2 class="text-2xl font-orbitron ${type === 'glitch' ? 'text-yellow-400' : 'text-cyan-400'}" style="text-shadow: 0 0 8px ${type === 'glitch' ? 'var(--color-yellow)' : 'var(--text-accent)'};">${type.toUpperCase()}</h2>
+                    <p class="my-4 text-lg">${card.text}</p>
+                    <button id="card-ok-btn" class="btn-cyber">OK</button>
+                `);
+                
+                document.getElementById('card-ok-btn').onclick = () => {
+                    handleCardAction(card);
+                    closeModal();
+                    resolveTurn();
+                };
+            }
+        }
+        
+        function handleCardAction(card) {
+            const player = players[currentPlayerIndex];
+            switch (card.action) {
+                case 'pay': player.money -= card.amount; break;
+                case 'receive': player.money += card.amount; break;
+                case 'miss_turns': player.missTurns += card.turns; break;
+                case 'go_to':
+                    player.position = card.position;
+                    if (card.position === 0) player.money += 200;
+                    movePlayer(0);
+                    break;
+                case 'data_leak':
+                    const otherPlayers = players.filter(p => p.id !== player.id && !p.isAI);
+                    if (otherPlayers.length > 0) {
+                        const target = otherPlayers[0]; // AI just targets the first human
+                        const hushMoney = Math.floor(target.money / 2);
+                        logMessage(`${player.name} blackmails ${target.name} for ${hushMoney} CC!`);
+                        target.money -= hushMoney;
+                        player.money += hushMoney;
+                    }
+                    break;
+            }
+            updatePlayersUI();
+        }
+
+        function resolveTurn() {
+            const player = players[currentPlayerIndex];
+            if (player.isAI) {
+                setTimeout(endTurn, 1500); // Wait before AI ends its turn
+            } else {
+                endTurnBtn.disabled = false; // Enable button for human
+            }
+        }
+
+        function endTurn() {
+            endTurnBtn.disabled = true;
+            rollDiceBtn.disabled = true;
+
+            boardData.forEach(tile => {
+                if (tile.rentBombTurns > 0) {
+                    tile.rentBombTurns--;
+                    if (tile.rentBombTurns === 0) {
+                        logMessage(`Rent Bomb on ${tile.name} has expired.`);
+                        updateTileDisplay(tile.id);
+                    }
+                }
+            });
+
+            if (aiOverlord && aiOverlord.active) {
+                aiTurn();
+            }
+
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            const nextPlayer = players[currentPlayerIndex];
+            
+            updateCurrentPlayerDisplay();
+            updateSpecialActions();
+
+            if (nextPlayer.missTurns > 0) {
+                logMessage(`${nextPlayer.name} must skip this turn.`);
+                nextPlayer.missTurns--;
+                updatePlayersUI();
+                setTimeout(endTurn, 1000);
+                return;
+            }
+
+            if (nextPlayer.isAI) {
+                setTimeout(aiPlayerTurn, 1000);
+            } else {
+                 if (nextPlayer.inJail) {
+                    logMessage(`${nextPlayer.name} is detained.`);
+                    endTurnBtn.disabled = false;
+                } else {
+                    rollDiceBtn.disabled = false;
+                }
+            }
+        }
+
+        function aiPlayerTurn() {
+            logMessage(`${players[currentPlayerIndex].name} is making a move...`);
+            if (players[currentPlayerIndex].inJail) {
+                // Simple AI: just wait out the jail time
+                logMessage(`${players[currentPlayerIndex].name} is waiting in jail.`);
+                resolveTurn();
+            } else {
+                setTimeout(rollDice, 1000);
+            }
+        }
+
+        // --- NEW MECHANICS FUNCTIONS ---
+
+        function updateSpecialActions() {
+            const player = players[currentPlayerIndex];
+            specialActionsContainer.innerHTML = '';
+
+            if (player.isAI) return; // Don't show buttons for AI
+
+            if (!player.hasUsedSabotage) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-cyber';
+                btn.textContent = 'Neural Sabotage (1/game)';
+                btn.onclick = activateNeuralSabotage;
+                specialActionsContainer.appendChild(btn);
+            }
+            
+            const warpBtn = document.createElement('button');
+            warpBtn.className = 'btn-cyber';
+            warpBtn.textContent = 'Quantum Warp (50 CC)';
+            warpBtn.onclick = activateQuantumWarp;
+            specialActionsContainer.appendChild(warpBtn);
+
+            const ownedProps = boardData.filter(p => p.owner === player.id && p.type === 'property');
+            if (ownedProps.length > 0) {
+                const rentBombBtn = document.createElement('button');
+                rentBombBtn.className = 'btn-cyber';
+                rentBombBtn.textContent = 'Set Rent Bomb';
+                rentBombBtn.onclick = () => showPropertySelector('rentBomb');
+                specialActionsContainer.appendChild(rentBombBtn);
+
+                const trapBtn = document.createElement('button');
+                trapBtn.className = 'btn-cyber';
+                trapBtn.textContent = 'Set Booby Trap';
+                trapBtn.onclick = () => showPropertySelector('boobyTrap');
+                specialActionsContainer.appendChild(trapBtn);
+            }
+        }
+
+        function activateNeuralSabotage() {
+            const player = players[currentPlayerIndex];
+            logMessage(`${player.name} is initiating Neural Sabotage!`);
+            const opponent = players.find(p => p.id !== player.id && boardData.some(prop => prop.owner === p.id));
+            if (!opponent) {
+                logMessage("No opponents with property to sabotage.");
+                return;
+            }
+            const myProp = boardData.find(p => p.owner === player.id);
+            const theirProp = boardData.find(p => p.owner === opponent.id);
+
+            if (myProp && theirProp) {
+                logMessage(`${player.name} swaps ${myProp.name} with ${opponent.name}'s ${theirProp.name}!`);
+                myProp.owner = opponent.id;
+                theirProp.owner = player.id;
+                player.hasUsedSabotage = true;
+                increaseMoralCollapse(2);
+                updatePlayersUI();
+                updateSpecialActions();
+            } else {
+                logMessage("Could not find properties to swap.");
+            }
+        }
+        
+        function activateQuantumWarp() {
+            const player = players[currentPlayerIndex];
+            if (player.money < 50) {
+                logMessage("Not enough credits for Quantum Warp.");
+                return;
+            }
+            let modalHTML = `<h3>Quantum Warp: Select Destination (50 CC)</h3><div class="grid grid-cols-4 gap-2 overflow-y-auto h-64">`;
+            boardData.forEach((tile, index) => {
+                modalHTML += `<button class="p-1 border text-xs warp-target-btn" data-target-id="${index}">${tile.name}</button>`;
+            });
+            modalHTML += `</div>`;
+            showModal(modalHTML);
+
+            document.querySelectorAll('.warp-target-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const targetId = parseInt(e.target.dataset.targetId);
+                    player.money -= 50;
+                    player.position = targetId;
+                    logMessage(`${player.name} warps to ${boardData[targetId].name}!`);
+                    const piece = document.getElementById(`player${player.id}-piece`);
+                    document.getElementById(`tile-${targetId}`).appendChild(piece);
+                    handleTileLanding();
+                    updatePlayersUI();
+                    closeModal();
+                    rollDiceBtn.disabled = true;
+                    endTurnBtn.disabled = false;
+                };
+            });
+        }
+
+        function showPropertySelector(actionType) {
+            const player = players[currentPlayerIndex];
+            const ownedProps = boardData.filter(p => p.owner === player.id && (p.type === 'property' || p.type === 'dataroute' || p.type === 'controlsystem'));
+            let modalHTML = `<h3>Select property to ${actionType === 'rentBomb' ? 'overclock' : 'booby trap'}:</h3>`;
+            ownedProps.forEach(p => {
+                modalHTML += `<button class="btn-cyber prop-action-btn" data-prop-id="${p.id}">${p.name}</button>`;
+            });
+            showModal(modalHTML);
+
+            document.querySelectorAll('.prop-action-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const propId = parseInt(e.target.dataset.propId);
+                    if (actionType === 'rentBomb') {
+                        boardData[propId].rentBombTurns = 3;
+                        logMessage(`Rent Bomb activated on ${boardData[propId].name} for 3 turns.`);
+                    } else {
+                        boardData[propId].isTrapped = true;
+                        logMessage(`Booby Trap set on ${boardData[propId].name}.`);
+                    }
+                    updateTileDisplay(propId);
+                    closeModal();
+                };
+            });
+        }
+
+        function updateTileDisplay(tileId) {
+            const tileElement = document.getElementById(`tile-${tileId}`);
+            const existingIcon = tileElement.querySelector('.tile-icon');
+            if (existingIcon) existingIcon.remove();
+            
+            const tileData = boardData[tileId];
+            let icon = '';
+            if (tileData.rentBombTurns > 0) icon = '💣';
+            if (tileData.isTrapped) icon = '💥';
+            
+            if(icon) {
+                const iconEl = document.createElement('div');
+                iconEl.className = 'tile-icon';
+                iconEl.textContent = icon;
+                tileElement.appendChild(iconEl);
+            }
+        }
+
+        function triggerBlackout() {
+            logMessage("SNAKE EYES! Global blackout triggered. Rent is frozen for 1 round.");
+            isBlackoutActive = true;
+            setTimeout(() => {
+                isBlackoutActive = false;
+                logMessage("Blackout has ended.");
+            }, players.length * 5000); 
+        }
+
+        function increaseMoralCollapse(amount) {
+            moralCollapseTracker += amount;
+            if (moralCollapseTracker > MORAL_COLLAPSE_MAX) moralCollapseTracker = MORAL_COLLAPSE_MAX;
+            moralCollapseTrackerDisplay.textContent = `Moral Collapse: ${moralCollapseTracker} / ${MORAL_COLLAPSE_MAX}`;
+            
+            if (moralCollapseTracker >= MORAL_COLLAPSE_MAX && !aiOverlord) {
+                triggerAIOverlord();
+            }
+        }
+
+        function triggerAIOverlord() {
+            logMessage("MORAL COLLAPSE! The AI Overlord has been unleashed!");
+            aiOverlord = {
+                id: 'ai',
+                name: 'AI Overlord',
+                position: 0,
+                active: true,
+            };
+            const piece = document.createElement('div');
+            piece.id = 'ai-overlord-piece';
+            piece.className = 'player-piece';
+            document.getElementById('tile-0').appendChild(piece);
+        }
+
+        function aiTurn() {
+            logMessage("AI Overlord is making its move...");
+            const die1 = Math.floor(Math.random() * 6) + 1;
+            const die2 = Math.floor(Math.random() * 6) + 1;
+            const total = die1 + die2;
+            aiOverlord.position = (aiOverlord.position + total) % 40;
+            
+            const piece = document.getElementById('ai-overlord-piece');
+            const targetTileEl = document.getElementById(`tile-${aiOverlord.position}`);
+            targetTileEl.appendChild(piece);
+
+            const targetTile = boardData[aiOverlord.position];
+            logMessage(`AI Overlord moves to ${targetTile.name}.`);
+
+            if (targetTile.owner && targetTile.owner !== 'ai') {
+                logMessage(`AI Overlord seizes ${targetTile.name} from Player ${targetTile.owner}!`);
+                targetTile.owner = 'ai';
+                targetTileEl.style.backgroundColor = '#500'; 
+            }
+        }
+
+        function showModal(content) {
+            modalContent.innerHTML = content;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // --- EVENT LISTENERS ---
+        rollDiceBtn.addEventListener('click', rollDice);
+        endTurnBtn.addEventListener('click', endTurn);
+        window.addEventListener('click', (event) => {
+            if (event.target == modal) {
+                closeModal();
+            }
+        });
+
+        // --- START GAME ---
+        initGame();
+
+    </script>
+</body>
+</html>
